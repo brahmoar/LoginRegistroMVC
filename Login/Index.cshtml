@@ -1,0 +1,216 @@
+﻿@{
+    ViewData["Title"] = "Inicio de Sesión";
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+            input[type="text"]:focus,
+            input[type="password"]:focus {
+                outline: none;
+                border-color: #667eea;
+            }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+            .btn-login:hover {
+                transform: translateY(-2px);
+            }
+
+        .mensaje {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+
+            .mensaje.error {
+                background-color: #fee;
+                color: #c33;
+                border: 1px solid #fcc;
+            }
+
+            .mensaje.exito {
+                background-color: #efe;
+                color: #3c3;
+                border: 1px solid #cfc;
+            }
+
+        .info-usuarios {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f4f8;
+            border-radius: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+
+            .info-usuarios h4 {
+                margin-bottom: 8px;
+                color: #333;
+            }
+
+            .info-usuarios p {
+                margin: 4px 0;
+            }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Inicio de Sesión</h2>
+
+        <form id="formLogin">
+            <div class="form-group">
+                <label for="usuario">Usuario:</label>
+                <input type="text" id="usuario" name="usuario" placeholder="Ingrese su usuario">
+            </div>
+
+            <div class="form-group">
+                <label for="contrasena">Contraseña:</label>
+                <input type="password" id="contrasena" name="contrasena" placeholder="Ingrese su contraseña">
+            </div>
+
+            <button type="submit" class="btn-login">Iniciar Sesión</button>
+
+            <div id="mensaje" class="mensaje"></div>
+        </form>
+
+        <div class="info-usuarios">
+            <h4>Usuarios de prueba:</h4>
+            <p><strong>ADMIN</strong> / ADMIN</p>
+            <p><strong>usuario1</strong> / pass123</p>
+            <p><strong>test</strong> / test123</p>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#formLogin').on('submit', function(e) {
+                e.preventDefault();
+
+                var usuario = $('#usuario').val().trim();
+                var contrasena = $('#contrasena').val().trim();
+
+                // Validación en cliente
+                if (usuario === '') {
+                    mostrarMensaje('Usuario no puede encontrarse vacío', 'error');
+                    return;
+                }
+
+                if (contrasena === '') {
+                    mostrarMensaje('Contraseña no puede encontrarse vacía', 'error');
+                    return;
+                }
+
+                // Enviar datos al controlador mediante AJAX
+                $.ajax({
+                    url: '@Url.Action("ValidarUsuario", "Login")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        NombreUsuario: usuario,
+                        Contrasena: contrasena
+                    }),
+                    success: function(response) {
+                        if (response.success) {
+                            mostrarMensaje(response.message, 'exito');
+                            setTimeout(function() {
+                                window.location.href = '@Url.Action("Index", "Datos")';
+                            }, 1000);
+                        } else {
+                            mostrarMensaje(response.message, 'error');
+                        }
+                    },
+                    error: function() {
+                        mostrarMensaje('Error al conectar con el servidor', 'error');
+                    }
+                });
+            });
+
+            function mostrarMensaje(texto, tipo) {
+                var $mensaje = $('#mensaje');
+                $mensaje.removeClass('error exito');
+                $mensaje.addClass(tipo);
+                $mensaje.text(texto);
+                $mensaje.fadeIn();
+
+                if (tipo === 'error') {
+                    setTimeout(function() {
+                        $mensaje.fadeOut();
+                    }, 3000);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
